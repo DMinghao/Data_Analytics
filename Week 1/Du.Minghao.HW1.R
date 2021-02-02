@@ -1,3 +1,10 @@
+# BU.510.650	      Homework #1
+# Data Analytics	  Page 2 of 2
+# Spring 2021	      The Johns Hopkins University
+# Arnab Bisi	      Carey Business School
+
+
+
 ############  Question 2  ############
 
 # (a) Write the R-code to create a matrix in which the first column consists of

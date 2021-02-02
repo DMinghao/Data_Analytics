@@ -9,3 +9,22 @@
 ```
 R   >= 3.6 (4.0 recommended)
 ```
+
+### Usage
+
+Setup
+
+- Make sure the data is under the **same** directory as the code 
+
+Running
+
+- Open R interactive shell 
+
+
+## Troubleshooting 
+
+### CSV Data 
+
+- Make sure the .csv file you are accessing is under the same folder as .R file 
+- While reading .csv file set the `stringsAsFactors` flag to `TRUE` to prevent errors caused by string values 
+- 

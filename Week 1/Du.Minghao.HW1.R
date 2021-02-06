@@ -97,3 +97,16 @@ text(
   pos = 3,
   col = "red"
 )
+
+library(MASS)
+
+m <- lm(auto$mpg ~ ., auto[, 2:7])
+models <- stepAIC(m, direction = 'both', k = log(nrow(auto)))
+summary(models)
+models$anova
+
+confint(models)
+
+#+ fig.width=11, fig.height=8
+plot(m)
+

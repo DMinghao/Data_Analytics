@@ -26,5 +26,6 @@ Running
 ### CSV Data 
 
 - Make sure the .csv file you are accessing is under the same folder as .R file 
+- Make sure the working directory is set to the current file's folder 
 - While reading .csv file set the `stringsAsFactors` flag to `TRUE` to prevent errors caused by string values 
 - 

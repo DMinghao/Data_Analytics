@@ -1,5 +1,24 @@
-##### Dependencies #####
+---
+title: "Project Notebook"
+output:
+  prettydoc::html_pretty:
+    highlight: github
+    toc: yes
+    toc_depth: 2
+    theme: lumen
+  '# prettydoc::html_pretty': default
+---
 
+```{css echo=FALSE}
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
+code{
+  font-family: 'Fira Code'!important;
+}
+```
+
+# Requirements 
+
+```{r message=FALSE, warning=FALSE}
 if (!require(tree))
   install.packages('tree')
 library(tree)
@@ -8,15 +27,28 @@ if (!require(randomForest))
   install.packages("randomForest")
 library(randomForest)
 
-##### Pre-process Data #####
+if (!require(rpart))
+  install.packages("rpart")
+library(rpart)
 
+if (!require(rpart.plot))
+  install.packages("rpart.plot")
+library(rpart.plot)
+```
+
+# Pre-process Data
+
+## Read data
+```{r}
 data <-
   read.csv('ObesityDataSet.csv',
            na.strings = '?',
            stringsAsFactors = T)
 data <- na.omit(data)
+```
 
-# rename columns
+## rename columns 
+```{r paged.print=TRUE}
 colnames(data)[6] <- 'eats_high_calor_food'
 colnames(data)[7] <- 'eats_veggies'
 colnames(data)[8] <- 'num_meals'
@@ -28,49 +60,66 @@ colnames(data)[14] <- 'time_using_tech'
 colnames(data)[15] <- 'drinks_alcohol'
 colnames(data)[16] <- 'method_trans'
 colnames(data)[17] <- 'weight_category'
-names(data)
 
 head(data)
+```
 
+## split sample and test
+```{r}
 set.seed(1)
 
-# split sample and test
 train <- sample(1:nrow(data), nrow(data) / 2)
-test <- data[-train,]
+test <- data[-train, ]
+```
 
-##### Decision Tree #####
+# Decision Tree
 
-# plant a tree
+## Plant a tree
+```{r}
 data.tree <- tree(weight_category ~ ., data = data)
-data.tree
+tree <- rpart(weight_category ~ ., data = data)
 summary(data.tree)
+```
+
+```{r}
+rpart.plot(tree, box.palette="RdBu", shadow.col="gray", nn=TRUE)
 plot(data.tree)
-text(data.tree, pretty = 0)
+# text(data.tree, pretty = 0)
+```
 
-
+### evaluate tree
+```{r}
 data.tree <- tree(weight_category ~ ., data = data, subset = train)
 data.tree.pred = predict(data.tree, test, type = "class")
+```
 
+
+```{r}
 table(data.tree.pred, test$weight_category)
 mean(data.tree.pred == test$weight_category)
+```
 
-
+## cross validation
+```{r}
 cv.data <- cv.tree(data.tree, FUN = prune.misclass)
 names(cv.data)
 plot(cv.data)
 cv.data
+```
 
-
+```{r}
 prune.data <- prune.misclass(data.tree, best = 9)
 plot(prune.data)
 text(prune.data, pretty = 0)
+```
 
+```{r}
 prune.data.pred <- predict(prune.data, test, type = "class")
 table(prune.data.pred, test$weight_category)
 mean(prune.data.pred == test$weight_category)
+```
 
-
-
+```{r}
 data.forest <- randomForest(
   weight_category ~ .,
   data = data,
@@ -80,7 +129,9 @@ data.forest <- randomForest(
 )
 data.forest
 plot(data.forest)
+```
 
+```{r}
 data.forest <- randomForest(
   weight_category ~ .,
   data = data,
@@ -91,14 +142,20 @@ data.forest <- randomForest(
 )
 data.forest
 plot(data.forest)
+```
 
+```{r}
 importance(data.forest)
 varImpPlot(data.forest)
+```
 
+```{r}
 data.forest.pred <- predict(data.forest, test, typr = "class")
 table(data.forest.pred, test$weight_category)
 mean(data.forest.pred == test$weight_category)
+```
 
+```{r warning=FALSE}
 mtry.list <- c()
 data.forest.final <- NULL
 i <- 1
@@ -120,22 +177,26 @@ for (i in 1:ncol(data) - 1) {
   }
   mtry.list[i] <- score
 }
+```
 
+```{r}
 mtry.list
 plot(mtry.list)
+```
 
+```{r}
 data.forest.final
 plot(data.forest.final)
+```
 
+```{r}
 importance(data.forest.final)
 varImpPlot(data.forest.final)
+```
 
-data.forest.final.pred <-
-  predict(data.forest.final, test, typr = "class")
+```{r}
+data.forest.final.pred <- predict(data.forest.final, test, typr = "class")
 table(data.forest.final.pred, test$weight_category)
 mean(data.forest.final.pred == test$weight_category)
+```
 
-
-# rf.cv <- rfcv(data, data$weight_category, cv.fold=10)
-#
-# with(rf.cv, plot(n.var, error.cv))

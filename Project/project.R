@@ -1,5 +1,7 @@
 ##### Dependencies #####
 
+R.Version()
+
 if (!require(tree))
   install.packages('tree')
 library(tree)
@@ -7,6 +9,10 @@ library(tree)
 if (!require(randomForest))
   install.packages("randomForest")
 library(randomForest)
+
+if (!require(randomForestExplainer))
+  install.packages("randomForestExplainer")
+library(randomForestExplainer)
 
 ##### Pre-process Data #####
 
@@ -76,7 +82,8 @@ data.forest <- randomForest(
   data = data,
   subset = train,
   ntree = 5000,
-  importance = T
+  importance = T,
+  localImp = T
 )
 data.forest
 plot(data.forest)
@@ -87,7 +94,8 @@ data.forest <- randomForest(
   subset = train,
   ntree = 5000,
   mtry = ncol(data) - 1,
-  importance = T
+  importance = T,
+  localImp = T
 )
 data.forest
 plot(data.forest)
@@ -110,7 +118,8 @@ for (i in 1:ncol(data) - 1) {
     subset = train,
     ntree = 5000,
     mtry = i,
-    importance = T
+    importance = T,
+    localImp = T
   )
   val <- predict(data.forest.dummy, test, typr = "class")
   score <- mean(val == test$weight_category)
@@ -135,7 +144,4 @@ data.forest.final.pred <-
 table(data.forest.final.pred, test$weight_category)
 mean(data.forest.final.pred == test$weight_category)
 
-
-# rf.cv <- rfcv(data, data$weight_category, cv.fold=10)
-#
-# with(rf.cv, plot(n.var, error.cv))
+explain_forest(data.forest.final, interactions = TRUE, data = data)

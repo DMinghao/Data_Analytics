@@ -5,7 +5,7 @@ output:
     highlight: github
     toc: yes
     toc_depth: 2
-    theme: lumen
+    theme: architect
   '# prettydoc::html_pretty': default
 ---
 
@@ -14,6 +14,13 @@ output:
 code{
   font-family: 'Fira Code'!important;
 }
+```
+```{r echo=FALSE}
+library(rmarkdown)
+if (!require(kableExtra)) install.packages("kableExtra")
+library(kableExtra)
+library(knitr)
+library(magrittr)
 ```
 
 # Requirements 
@@ -26,20 +33,13 @@ library(tree)
 if (!require(randomForest))
   install.packages("randomForest")
 library(randomForest)
-
-if (!require(rpart))
-  install.packages("rpart")
-library(rpart)
-
-if (!require(rpart.plot))
-  install.packages("rpart.plot")
-library(rpart.plot)
 ```
 
 # Pre-process Data
 
 ## Read data
 ```{r}
+treeCount = 100
 data <-
   read.csv('ObesityDataSet.csv',
            na.strings = '?',
@@ -48,7 +48,7 @@ data <- na.omit(data)
 ```
 
 ## rename columns 
-```{r paged.print=TRUE}
+```{r paged.print=TRUE, render='lemon'}
 colnames(data)[6] <- 'eats_high_calor_food'
 colnames(data)[7] <- 'eats_veggies'
 colnames(data)[8] <- 'num_meals'
@@ -61,7 +61,7 @@ colnames(data)[15] <- 'drinks_alcohol'
 colnames(data)[16] <- 'method_trans'
 colnames(data)[17] <- 'weight_category'
 
-head(data)
+head(data) %>% paged_table()
 ```
 
 ## split sample and test
@@ -77,14 +77,12 @@ test <- data[-train, ]
 ## Plant a tree
 ```{r}
 data.tree <- tree(weight_category ~ ., data = data)
-tree <- rpart(weight_category ~ ., data = data)
 summary(data.tree)
 ```
 
 ```{r}
-rpart.plot(tree, box.palette="RdBu", shadow.col="gray", nn=TRUE)
 plot(data.tree)
-# text(data.tree, pretty = 0)
+text(data.tree, pretty = 0)
 ```
 
 ### evaluate tree
@@ -94,17 +92,15 @@ data.tree.pred = predict(data.tree, test, type = "class")
 ```
 
 
-```{r}
-table(data.tree.pred, test$weight_category)
+```{r paged.print=TRUE}
+table(data.tree.pred, test$weight_category) %>% kable()
 mean(data.tree.pred == test$weight_category)
 ```
 
 ## cross validation
 ```{r}
 cv.data <- cv.tree(data.tree, FUN = prune.misclass)
-names(cv.data)
 plot(cv.data)
-cv.data
 ```
 
 ```{r}
@@ -113,30 +109,30 @@ plot(prune.data)
 text(prune.data, pretty = 0)
 ```
 
-```{r}
+```{r paged.print=TRUE}
 prune.data.pred <- predict(prune.data, test, type = "class")
 table(prune.data.pred, test$weight_category)
 mean(prune.data.pred == test$weight_category)
 ```
 
-```{r}
+```{r paged.print=TRUE}
 data.forest <- randomForest(
   weight_category ~ .,
   data = data,
   subset = train,
-  ntree = 5000,
+  ntree = treeCount,
   importance = T
 )
-data.forest
+data.forest$confusion %>% kable()
 plot(data.forest)
 ```
 
-```{r}
+```{r paged.print=TRUE}
 data.forest <- randomForest(
   weight_category ~ .,
   data = data,
   subset = train,
-  ntree = 5000,
+  ntree = treeCount,
   mtry = ncol(data) - 1,
   importance = T
 )
@@ -144,12 +140,12 @@ data.forest
 plot(data.forest)
 ```
 
-```{r}
+```{r paged.print=TRUE}
 importance(data.forest)
 varImpPlot(data.forest)
 ```
 
-```{r}
+```{r paged.print=TRUE}
 data.forest.pred <- predict(data.forest, test, typr = "class")
 table(data.forest.pred, test$weight_category)
 mean(data.forest.pred == test$weight_category)
@@ -160,12 +156,12 @@ mtry.list <- c()
 data.forest.final <- NULL
 i <- 1
 max <- 0
-for (i in 1:ncol(data) - 1) {
+for (i in 1:ncol(data)) {
   data.forest.dummy <- randomForest(
     weight_category ~ .,
     data = data,
     subset = train,
-    ntree = 5000,
+    ntree = treeCount,
     mtry = i,
     importance = T
   )
@@ -179,22 +175,22 @@ for (i in 1:ncol(data) - 1) {
 }
 ```
 
-```{r}
+```{r paged.print=TRUE}
 mtry.list
 plot(mtry.list)
 ```
 
-```{r}
+```{r paged.print=TRUE}
 data.forest.final
 plot(data.forest.final)
 ```
 
-```{r}
+```{r paged.print=TRUE}
 importance(data.forest.final)
 varImpPlot(data.forest.final)
 ```
 
-```{r}
+```{r paged.print=TRUE}
 data.forest.final.pred <- predict(data.forest.final, test, typr = "class")
 table(data.forest.final.pred, test$weight_category)
 mean(data.forest.final.pred == test$weight_category)

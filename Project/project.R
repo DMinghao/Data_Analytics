@@ -67,7 +67,8 @@ plot(cv.data)
 cv.data
 
 
-prune.data <- prune.misclass(data.tree, best = 9)
+prune.data <-
+  prune.misclass(data.tree, best = cv.data$size[which.min(cv.data$dev)])
 plot(prune.data)
 text(prune.data, pretty = 0)
 
@@ -109,7 +110,6 @@ mean(data.forest.pred == test$weight_category)
 
 mtry.list <- c()
 data.forest.final <- NULL
-i <- 1
 max <- 0
 for (i in 1:ncol(data) - 1) {
   data.forest.dummy <- randomForest(

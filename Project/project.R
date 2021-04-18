@@ -48,8 +48,9 @@ test <- data[-train,]
 
 # plant a tree
 data.tree <- tree(weight_category ~ ., data = data)
-data.tree
+
 summary(data.tree)
+#+ fig.width=11, fig.height=8
 plot(data.tree)
 text(data.tree, pretty = 0)
 
@@ -60,15 +61,17 @@ data.tree.pred = predict(data.tree, test, type = "class")
 table(data.tree.pred, test$weight_category)
 mean(data.tree.pred == test$weight_category)
 
-
+# cross validating different trees 
 cv.data <- cv.tree(data.tree, FUN = prune.misclass)
 names(cv.data)
+#+ fig.width=11, fig.height=8
 plot(cv.data)
 cv.data
 
-
+# get the best tree
 prune.data <-
   prune.misclass(data.tree, best = cv.data$size[which.min(cv.data$dev)])
+#+ fig.width=11, fig.height=8
 plot(prune.data)
 text(prune.data, pretty = 0)
 
@@ -77,7 +80,9 @@ table(prune.data.pred, test$weight_category)
 mean(prune.data.pred == test$weight_category)
 
 
+##### Random Forest #####
 
+# baseline forest
 data.forest <- randomForest(
   weight_category ~ .,
   data = data,
@@ -89,6 +94,7 @@ data.forest <- randomForest(
 data.forest
 plot(data.forest)
 
+# testing hyper peramiter: mtry
 data.forest <- randomForest(
   weight_category ~ .,
   data = data,
@@ -99,6 +105,7 @@ data.forest <- randomForest(
   localImp = T
 )
 data.forest
+#+ fig.width=11, fig.height=8
 plot(data.forest)
 
 importance(data.forest)
@@ -111,7 +118,7 @@ mean(data.forest.pred == test$weight_category)
 mtry.list <- c()
 data.forest.final <- NULL
 max <- 0
-for (i in 1:ncol(data) - 1) {
+for (i in 1:(ncol(data) - 1)) {
   data.forest.dummy <- randomForest(
     weight_category ~ .,
     data = data,
@@ -131,12 +138,15 @@ for (i in 1:ncol(data) - 1) {
 }
 
 mtry.list
+#+ fig.width=11, fig.height=8
 plot(mtry.list)
 
 data.forest.final
+#+ fig.width=11, fig.height=8
 plot(data.forest.final)
 
 importance(data.forest.final)
+#+ fig.width=11, fig.height=8
 varImpPlot(data.forest.final)
 
 data.forest.final.pred <-
@@ -144,4 +154,4 @@ data.forest.final.pred <-
 table(data.forest.final.pred, test$weight_category)
 mean(data.forest.final.pred == test$weight_category)
 
-explain_forest(data.forest.final, interactions = TRUE, data = data)
+# explain_forest(data.forest.final, interactions = TRUE, data = data)
